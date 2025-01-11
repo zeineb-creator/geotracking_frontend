@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interviewers Tracking Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="login-container">
+        <div class="login-form">
+            <h2>Interviewer Login</h2>
+            <input type="number" id="staffId" placeholder="Enter your Staff ID" min="1">
+            <button id="loginBtn">Login</button>
+            <div id="loginError" class="error-message"></div>
+        </div>
+    </div>
+
+    <div id="main-container" style="display: none;">
+        <div id="map"></div>
+        <div id="status" class="status-container">
+            <div class="loading"></div>
+            <span id="statusText">Acquiring GPS signal...</span>
+        </div>
+        <div id="locationDisplay" style="font-size: 16px; margin-top: 10px;">
+            Coordinates will appear here.
+        </div>
+        <div id="interviewer-info" class="info-container">
+            <h3>Interviewer tracking</h3>
+            <div id="info-content"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="map.js"></script>
+</body>
+</html>
