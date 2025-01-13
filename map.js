@@ -278,6 +278,7 @@ socket.on('registration-error', (error) => {
     showLoginError(error);
 });
 
+
 // Handle cleanup before page unload
 window.addEventListener('beforeunload', () => {
     if (watchId) {
@@ -285,5 +286,49 @@ window.addEventListener('beforeunload', () => {
     }
 });
 
+// Function to toggle form visibility
+function toggleAddintervForm() {
+    alert("Button clicked!"); // Test if the button click is registered
+    const form = document.getElementById('addintervForm');
+    if (form.style.display === 'none' || form.style.display === '') {
+        form.style.display = 'block'; // Show the form
+    } else {
+        form.style.display = 'none'; // Hide the form
+    }
+}
 
+// Add event listener for form submission
+document.getElementById("intervForm").addEventListener("submit", function(event) {
+    event.preventDefault(); // Prevent the default form submission
 
+    const interview = {
+        governorate: document.getElementById('governorate').value,
+        delegation: document.getElementById('delegation').value,
+        gender: document.querySelector('input[name="gender"]:checked').value,
+        age: document.getElementById('age').value,
+        job_status: document.getElementById('job_status').value,
+        marital_status: document.getElementById('marital_status').value,
+        children_num: document.getElementById('children_num').value
+    };
+
+    console.log('Interview Data:', interview); // Log the interview data to check values
+
+    fetch("/add_interview", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(interview)
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);  // Handle success
+        // Optionally hide the form after submission
+        document.getElementById('addintervForm').style.display = 'none';
+        document.getElementById('intervForm').reset(); // Reset the form fields
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("Failed to add interview.");
+    });
+});

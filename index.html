@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +6,11 @@
     <title>Interviewers Tracking Map</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css" />
+    <style>
+        #addintervForm {
+            display: none; /* Initially hide the form */
+        }
+    </style>
 </head>
 <body>
     <div id="login-container">
@@ -33,8 +37,78 @@
         </div>
     </div>
 
+    <button class="add-btn" onclick="toggleAddintervForm()">Add Interview</button>
+
+    <!-- Add Interview Form -->
+    <div id="addintervForm">
+        <h2>Add New Interview</h2>
+        <form id="intervForm" onsubmit="handleSubmit(event)">
+            <label for="governorate">Governorate</label>
+            <select id="governorate" name="governorates" required>
+                <option value="ariana">A riana</option>
+                <option value="beja">Béja</option>
+                <option value="ben-arous">Ben Arous</option>
+                <option value="bizerte">Bizerte</option>
+                <option value="gabes">Gabès</option>
+                <option value="gafsa">Gafsa</option>
+                <option value="jendouba">Jendouba</option>
+                <option value="kairouan">Kairouan</option>
+                <option value="kasserine">Kasserine</option>
+                <option value="kebili">Kebili</option>
+                <option value="kef">Kef</option>
+                <option value="mahdia">Mahdia</option>
+                <option value="manouba">Manouba</option>
+                <option value="medenine">Medenine</option>
+                <option value="monastir">Monastir</option>
+                <option value="nabeul">Nabeul</option>
+                <option value="sfax">Sfax</option>
+                <option value="sidi-bouzid">Sidi Bouzid</option>
+                <option value="siliana">Siliana</option>
+                <option value="sousse">Sousse</option>
+                <option value="tataouine">Tataouine</option>
+                <option value="tozeur">Tozeur</option>
+                <option value="tunis">Tunis</option>
+                <option value="zaghouan">Zaghouan</option>
+              </select>
+    
+            <label for="delegation">Delegation</label>
+            <input type="text" id="delegation" name="delegation" pattern="[A-Za-z]+" placeholder="Delegation" required title="Only letters allowed">
+
+            <label>Gender</label>
+            <div>
+                <input type="radio" id="male" name="gender" value="Male" required>
+                <label for="male">Male</label>
+                <input type="radio" id="female" name="gender" value="Female" required>
+                <label for="female">Female</label>
+            </div>
+    
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" placeholder="Age" required>
+    
+            <label for="job_status">Job Status</label>
+            <select id="job_status" name="job_status" required>
+                <option value="Employed">Employed</option>
+                <option value="Unemployed">Unemployed</option>
+                <option value="Student">Student</option>
+                <option value="Retired">Retired</option>
+            </select>
+            
+            <label for="marital_status">Marital Status</label>
+            <select id="marital_status" name="marital_status" required>
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Divorced">Divorced</option>
+                <option value="Widowed">Widowed</option>
+            </select>
+    
+            <label for="children_num">Number of Children</label>
+            <input ```html
+            type="number" id="children_num" name="children_num" min="0" placeholder="Number of children" required>
+    
+            <button type="submit" id="submitButton">Submit</button>
+        </form>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="map.js"></script>
-</body>
-</html>
