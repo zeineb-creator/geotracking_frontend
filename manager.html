@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="logo">
+                <span>🌐</span>
+                <span>FieldTrack</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#" class="nav-link active" data-section="dashboard"><span>📊</span> Dashboard</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="interviewers"><span>👥</span> Interviewers</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="geofencing"><span>🗺️</span> Geofencing</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="analytics"><span>📈</span> Analytics</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" data-section="settings"><span>⚙️</span> Settings</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Manager Dashboard</h1>
+                <div class="user-info">
+                    <div class="user-avatar">AD</div>
+                    <span>Admin User</span>
+                </div>
+            </div>
+            
+            <div id="manager-alerts" class="manager-alert-container"></div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Active Interviewers</h3>
+                    <div class="value" id="active-interviewers">0</div>
+                    <div class="trend up" id="active-trend">Loading...</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Interviewers On Leave</h3>
+                    <div class="value" id="on-leave-interviewers">0</div>
+                    <div class="trend neutral" id="on-leave-trend">Loading...</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Completed Interviews</h3>
+                    <div class="value" id="completed-interviews">0</div>
+                    <div class="trend up" id="completed-trend">Loading...</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Boundary Violations</h3>
+                    <div class="value" id="boundary-violations">0</div>
+                    <div class="trend down" id="violations-trend">Loading...</div>
+                </div>
+            </div>
+            
+            <div class="map-container">
+                <div id="managerMap"></div>
+            </div>
+
+            <!-- INTERVIEWERS SECTION -->
+            <div id="interviewers-section" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Manage Interviewers</h2>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="showAddForm()">
+                        <i class="fas fa-plus"></i> Add Interviewer
+                    </button>
+                </div>
+
+                <!-- Filters Card -->
+                <div class="filter-container">
+                    <div class="filter-group">
+                        <label for="filter-governorate">Governorate</label>
+                        <select id="filter-governorate" class="form-control">
+                            <option value="">All Governorates</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="filter-district">District</label>
+                        <select id="filter-district" class="form-control">
+                            <option value="">All Districts</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="filter-delegation">Delegation</label>
+                        <select id="filter-delegation" class="form-control">
+                            <option value="">All Delegations</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="filter-status">Status</label>
+                        <select id="filter-status" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="Active">Active</option>
+                            <option value="On Leave">On Leave</option>
+                            <option value="Terminated">Terminated</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                        <button class="btn btn-primary" onclick="applyFilters()">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Interviewers Table -->
+                <div class="card table-card">
+                    <div class="table-responsive">
+                        <table id="interviewers-table" class="table">
+                            <thead>
+                                <tr>
+                                    <th>Staff ID</th>
+                                    <th>Name</th>
+                                    <th>Governorate</th>
+                                    <th>District</th>
+                                    <th>Delegation</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="interviewers-body">
+                                <!-- Filled by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Add/Edit Form -->
+                <div id="interviewer-form-container" class="card form-card" style="display: none;">
+                    <div class="card-header">
+                        <h3 id="form-title">Add Interviewer</h3>
+                        <button type="button" class="close" onclick="cancelForm()">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    
+                    <div class="card-body">
+                        <form id="interviewer-form">
+                            <input type="hidden" id="form-mode" value="add">
+                            <input type="hidden" id="edit-id">
+                            
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="form-name">First Name</label>
+                                    <input type="text" class="form-control" id="form-name" required>
+                                </div>
+                                
+                                <div class="form-group col-md-6">
+                                    <label for="form-lastname">Last Name</label>
+                                    <input type="text" class="form-control" id="form-lastname" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label for="form-governorate">Governorate</label>
+                                    <select id="form-governorate" class="form-control" required>
+                                        <option value="">Select Governorate</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group col-md-4">
+                                    <label for="form-delegation">Delegation</label>
+                                    <select id="form-delegation" class="form-control" required>
+                                        <option value="">Select Delegation</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label for="form-status">Status</label>
+                                    <select id="form-status" class="form-control" required>
+                                        <option value="Active">Active</option>
+                                        <option value="On Leave">On Leave</option>
+                                        <option value="Terminated">Terminated</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="cancelForm()">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANALYTICS SECTION -->
+            <div id="analytics-section" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2>Performance Analytics</h2>
+                </div>
+                
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <div class="card-header">
+                            <h3>Top Performers</h3>
+                            <p>By completed interviews</p>
+                        </div>
+                        <div class="card-body">
+                            <div class="top-interviewers-chart" id="top-interviewers-chart">
+                                <!-- Chart will be rendered here -->
+                            </div>
+                            <div class="top-interviewers-list" id="top-interviewers-list">
+                                <!-- List will be rendered here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="geofencing-section" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2><i class="fas fa-draw-polygon"></i> Geofencing Studio</h2>
+                    <p>Define work boundaries for your field interviewers</p>
+                </div>
+            
+                <div class="geofencing-container">
+                    <!-- Interviewer List Panel -->
+                    <div class="geofencing-sidebar">
+                        <div class="sidebar-header">
+                            <div class="search-box-wrapper">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="geofence-search" placeholder="Search interviewers..." class="search-input">
+                            </div>
+                            <button class="btn-refresh" title="Refresh List">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="interviewer-cards" id="geofence-interviewers-list">
+                            <!-- Cards will be loaded here -->
+                        </div>
+                    </div>
+            
+                    <!-- Map Canvas -->
+                    <div class="geofencing-canvas">
+                        <div id="geofenceMap"></div>
+                        
+                        <!-- Floating Control Panel -->
+                        <div class="geofence-controls">
+                            <div class="control-group">
+                                <button id="save-geofence" class="control-btn btn-save" disabled>
+                                    <i class="fas fa-save"></i>
+                                    <span>Save Boundary</span>
+                                </button>
+                                <button id="cancel-drawing" class="control-btn btn-cancel" disabled>
+                                    <i class="fas fa-undo"></i>
+                                    <span>Cancel</span>
+                                </button>
+                            </div>
+                            <div class="control-group">
+                                <button id="delete-geofence" class="control-btn btn-delete" disabled>
+                                    <i class="fas fa-trash"></i>
+                                    <span>Delete</span>
+                                </button>
+                                <button id="help-geofence" class="control-btn btn-help">
+                                    <i class="fas fa-question-circle"></i>
+                                    <span>Help</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Current Editor Status -->
+                        <div class="editor-status">
+                            <div id="current-editor-status">Select an interviewer to begin</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts at the bottom of the body -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="manager.js"></script>
+</body>
+</html>

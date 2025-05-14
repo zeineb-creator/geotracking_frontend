@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interviewer Tracking</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --text-color: #2c3e50;
+            --background-color: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Login Container */
+        #login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #4361ee, #3f37c9);
+        }
+
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+        }
+
+        .login-form h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        #loginBtn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #loginBtn:hover {
+            background: var(--secondary-color);
+        }
+
+        #loginBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Main Container */
+        #main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: white;
+            padding: 1.5rem;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-container {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            background-color: #95a5a6;
+            transition: background-color 0.3s ease;
+        }
+
+        .status-indicator.active {
+            background-color: var(--success-color);
+        }
+
+        .status-indicator.inactive {
+            background-color: var(--danger-color);
+        }
+
+        .info-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .info-container h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: auto;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .action-btn.primary {
+            background: var(--primary-color);
+        }
+
+        .action-btn.secondary {
+            background: #6c757d;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        /* Map Container */
+        #map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Interview Form Modal */
+        #interview-form-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #interview-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-header h2 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .form-submit,
+        .form-cancel {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .form-submit {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .form-submit:hover {
+            background: #27ae60;
+        }
+
+        .form-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .form-cancel:hover {
+            background: #5a6268;
+        }
+
+        /* Alert Messages */
+        .alert-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            font-size: 1rem;
+            z-index: 1000;
+            box-shadow: var(--card-shadow);
+            display: none;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-message.success {
+            background: var(--success-color);
+        }
+
+        .alert-message.error {
+            background: var(--danger-color);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-50%) translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            #main-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+
+            #map-container {
+                height: 60vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Container -->
+    <div id="login-container">
+        <div class="login-form">
+            <h2>Interviewer Login</h2>
+            <input type="number" id="staffId" placeholder="Enter your Staff ID" min="1" required>
+            <button id="loginBtn">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            <div id="loginError" class="alert-message error"></div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div id="main-container" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="status-container">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span id="statusText">Acquiring GPS signal...</span>
+            </div>
+            
+            <div id="interviewer-info" class="info-container">
+                <h3>Interviewer Information</h3>
+                <div id="info-content"></div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn primary" id="addInterviewBtn">
+                    <i class="fas fa-plus"></i> Add Interview
+                </button>
+                <button class="action-btn secondary" id="refreshLocation">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div id="map-container">
+            <div id="map"></div>
+        </div>
+
+        <!-- Interview Form Modal -->
+        <div id="interview-form-container">
+            <div id="interview-form">
+                <div class="form-header">
+                    <h2>New Interview</h2>
+                    <button class="close-btn" id="closeFormBtn">&times;</button>
+                </div>
+                <form id="interviewForm">
+                    <div class="form-group">
+                        <label for="governorate">Governorate</label>
+                        <select id="governorate" name="governorate" required>
+                            <option value="">Select Governorate</option>
+                            <option value="ariana">Ariana</option>
+                            <option value="benarous">Ben Arous</option>
+                            <option value="bizerte">Bizerte</option>
+                            <option value="gabes">Gabes</option>
+                            <option value="gafsa">Gafsa</option>
+                            <option value="kairouan">Kairouan</option>
+                            <option value="kasserine">Kasserine</option>
+                            <option value="kebili">Kebili</option>
+                            <option value="kef">Kef</option>
+                            <option value="mahdia">Mahdia</option>
+                            <option value="medenine">Medenine</option>
+                            <option value="monastir">Monastir</option>
+                            <option value="nabeul">Nabeul</option>
+                            <option value="sfax">Sfax</option>
+                            <option value="sidi_bouzid">Sidi Bouzid</option>
+                            <option value="siliana">Siliana</option>
+                            <option value="sousse">Sousse</option>
+                            <option value="tataouine">Tataouine</option>
+                            <option value="tozeur">Tozeur</option>
+                            <option value="tunis">Tunis</option>
+                            <option value="zaghouan">Zaghouan</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delegation">Delegation</label>
+                        <input type="text" id="delegation" name="delegation" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="gender" value="Male" required> Male
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="gender" value="Female"> Female
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="number" id="age" name="age" min="18" max="100" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="job_status">Job Status</label>
+                        <select id="job_status" name="job_status" required>
+                            <option value="">Select Status</option>
+                            <option value="Employed">Employed</option>
+                            <option value="Unemployed">Unemployed</option>
+                            <option value="Student">Student</option>
+                            <option value="Retired">Retired</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="marital_status">Marital Status</label>
+                        <select id="marital_status" name="marital_status" required>
+                            <option value="">Select Status</option>
+                            <option value="Single">Single</option>
+                            <option value="Married">Married</option>
+                            <option value="Divorced">Divorced</option>
+                            <option value="Widowed">Widowed</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="children_num">Number of Children</label>
+                        <input type="number" id="children_num" name="children_num" min="0" required>
+                    </div>
+                    
+                    <div class="form-buttons">
+                        <button type="button" class="form-cancel" id="cancelInterviewBtn">Cancel</button>
+                        <button type="submit" class="form-submit">
+                            <i class="fas fa-save"></i> Submit Interview
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="map.js"></script>
+</body>
+</html>

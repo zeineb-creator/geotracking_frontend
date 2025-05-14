@@ -3,112 +3,261 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interviewers Tracking Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css" />
+    <title>Field Survey System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        #addintervForm {
-            display: none; /* Initially hide the form */
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --dark: #1b263b;
+            --light: #f8f9fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .login-options {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            width: 350px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+        }
+        
+        .login-card h2 {
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+        
+        .login-card p {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .login-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .login-form input {
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+        
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .login-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 1rem;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .error-message {
+            color: #e63946;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .login-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .login-card {
+                width: 100%;
+                max-width: 350px;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="login-container">
-        <div class="login-form">
-            <h2>Interviewer Login</h2>
-            <input type="number" id="staffId" placeholder="Enter your Staff ID" min="1">
-            <button id="loginBtn">Login</button>
-            <div id="loginError" class="error-message"></div>
+    <div class="container">
+        <div class="header">
+            <h1>Field Survey System</h1>
+            <p>Track interviews and manage field operations efficiently</p>
         </div>
-    </div>
-
-    <div id="main-container" style="display: none;">
-        <div id="map"></div>
-        <div id="status" class="status-container">
-            <div class="loading"></div>
-            <span id="statusText">Acquiring GPS signal...</span>
-        </div>
-        <div id="locationDisplay" style="font-size: 16px; margin-top: 10px;">
-            Coordinates will appear here.
-        </div>
-        <div id="interviewer-info" class="info-container">
-            <h3>Interviewer tracking</h3>
-            <div id="info-content"></div>
-        </div>
-    </div>
-
-    <button class="add-btn" onclick="toggleAddintervForm()">Add Interview</button>
-
-    <!-- Add Interview Form -->
-    <div id="addintervForm">
-        <h2>Add New Interview</h2>
-        <form id="intervForm" onsubmit="handleSubmit(event)">
-            <label for="governorate">Governorate</label>
-            <select id="governorate" name="governorates" required>
-                <option value="ariana">A riana</option>
-                <option value="beja">Béja</option>
-                <option value="ben-arous">Ben Arous</option>
-                <option value="bizerte">Bizerte</option>
-                <option value="gabes">Gabès</option>
-                <option value="gafsa">Gafsa</option>
-                <option value="jendouba">Jendouba</option>
-                <option value="kairouan">Kairouan</option>
-                <option value="kasserine">Kasserine</option>
-                <option value="kebili">Kebili</option>
-                <option value="kef">Kef</option>
-                <option value="mahdia">Mahdia</option>
-                <option value="manouba">Manouba</option>
-                <option value="medenine">Medenine</option>
-                <option value="monastir">Monastir</option>
-                <option value="nabeul">Nabeul</option>
-                <option value="sfax">Sfax</option>
-                <option value="sidi-bouzid">Sidi Bouzid</option>
-                <option value="siliana">Siliana</option>
-                <option value="sousse">Sousse</option>
-                <option value="tataouine">Tataouine</option>
-                <option value="tozeur">Tozeur</option>
-                <option value="tunis">Tunis</option>
-                <option value="zaghouan">Zaghouan</option>
-              </select>
-    
-            <label for="delegation">Delegation</label>
-            <input type="text" id="delegation" name="delegation" pattern="[A-Za-z]+" placeholder="Delegation" required title="Only letters allowed">
-
-            <label>Gender</label>
-            <div>
-                <input type="radio" id="male" name="gender" value="Male" required>
-                <label for="male">Male</label>
-                <input type="radio" id="female" name="gender" value="Female" required>
-                <label for="female">Female</label>
+        
+        <div class="login-options">
+            <div class="login-card">
+                <div class="icon">👨‍💼</div>
+                <h2>Staff Login</h2>
+                <p>Access your interviewer dashboard and tracking system</p>
+                <form class="login-form" id="staffLoginForm">
+                    <input type="password" id="staffCode" placeholder="Staff Access Code" required>
+                    <button type="submit" class="login-btn">Continue as Staff</button>
+                    <div id="staffError" class="error-message"></div>
+                </form>
             </div>
-    
-            <label for="age">Age</label>
-            <input type="number" id="age" name="age" placeholder="Age" required>
-    
-            <label for="job_status">Job Status</label>
-            <select id="job_status" name="job_status" required>
-                <option value="Employed">Employed</option>
-                <option value="Unemployed">Unemployed</option>
-                <option value="Student">Student</option>
-                <option value="Retired">Retired</option>
-            </select>
             
-            <label for="marital_status">Marital Status</label>
-            <select id="marital_status" name="marital_status" required>
-                <option value="Single">Single</option>
-                <option value="Married">Married</option>
-                <option value="Divorced">Divorced</option>
-                <option value="Widowed">Widowed</option>
-            </select>
-    
-            <label for="children_num">Number of Children</label>
-            <input ```html
-            type="number" id="children_num" name="children_num" min="0" placeholder="Number of children" required>
-    
-            <button type="submit" id="submitButton">Submit</button>
-        </form>
+            <div class="login-card">
+                <div class="icon">👔</div>
+                <h2>Manager Login</h2>
+                <p>Access administrative controls and analytics dashboard</p>
+                <form class="login-form" id="managerLoginForm">
+                    <input type="password" id="managerCode" placeholder="Manager Access Code" required>
+                    <button type="submit" class="login-btn">Continue as Manager</button>
+                    <div id="managerError" class="error-message"></div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2023 Field Survey System. All rights reserved.</p>
+        </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="map.js"></script>
+    <script>
+        document.getElementById('staffLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const staffCode = document.getElementById('staffCode').value;
+            const validStaffCode = 'staff25'; // Staff access code
+            
+            if (!staffCode) {
+                showError('staffError', 'Please enter the staff access code');
+                return;
+            }
+            
+            if (staffCode !== validStaffCode) {
+                showError('staffError', 'Invalid staff access code');
+                return;
+            }
+            
+            // Redirect to staff login page where they'll enter their ID
+            window.location.href = 'staff.html';
+        });
+        
+        document.getElementById('managerLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const managerCode = document.getElementById('managerCode').value;
+            const validManagerCode = 'manager25'; // Manager access code
+            
+            if (!managerCode) {
+                showError('managerError', 'Please enter the manager access code');
+                return;
+            }
+            
+            if (managerCode !== validManagerCode) {
+                showError('managerError', 'Invalid manager access code');
+                return;
+            }
+            
+            // Redirect to manager dashboard
+            window.location.href = 'manager.html';
+        });
+        
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
